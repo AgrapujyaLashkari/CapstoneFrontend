@@ -21,6 +21,7 @@ const Home = () => {
   const [isSearch, setIsSearch] = useState(false)
 
   // console.log(allNotes)
+  console.log("state",userInfo)
 
   const navigate = useNavigate()
 
@@ -34,30 +35,41 @@ const Home = () => {
     if (currentUser === null || !currentUser) {
       navigate("/login")
     } else {
-      setUserInfo(currentUser?.rest)
+      
+      setUserInfo(currentUser?.username)
       getAllNotes()
     }
   }, [])
 
-  // get all notes
+
   const getAllNotes = async () => {
     try {
-      const res = await axios.get("http://localhost:3000/api/note/all", {
-        withCredentials: true,
-      })
-
+      const token = localStorage.getItem('token');
+      console.log("Token from localStorage:", token); // Add this line
+      console.log("current user",currentUser)
+      console.log("current user rest",currentUser.username)
+  
+      const res = await axios.get("https://notetakingbackend-ss9p.onrender.com/api/note/all", {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      });
+  
+      console.log("Response:", res); // Add this line
+  
       if (res.data.success === false) {
-        console.log(res.data)
-        return
+        console.log(res.data);
+        return;
       }
-
-      // console.log(res.data)
-
-      setAllNotes(res.data.notes)
+  
+      setAllNotes(res.data.notes);
     } catch (error) {
-      console.log(error)
+      console.log("Error in getAllNotes:", error); // Modify this line
+      if (error.response) {
+        console.log("Error response:", error.response.data); // Add this line
+      }
     }
-  }
+  };
 
   const handleEdit = (noteDetails) => {
     setOpenAddEditModal({ isShown: true, data: noteDetails, type: "edit" })
@@ -68,9 +80,14 @@ const Home = () => {
     const noteId = data._id
 
     try {
+      const token = localStorage.getItem('token')
       const res = await axios.delete(
-        "http://localhost:3000/api/note/delete/" + noteId,
-        { withCredentials: true }
+        "https://notetakingbackend-ss9p.onrender.com/api/note/delete/" + noteId,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
       )
 
       if (res.data.success === false) {
@@ -86,10 +103,13 @@ const Home = () => {
   }
 
   const onSearchNote = async (query) => {
+    const token = localStorage.getItem('token')
     try {
-      const res = await axios.get("http://localhost:3000/api/note/search", {
+      const res = await axios.get("https://notetakingbackend-ss9p.onrender.com/api/note/search", {
         params: { query },
-        withCredentials: true,
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
       })
 
       if (res.data.success === false) {
@@ -112,12 +132,15 @@ const Home = () => {
 
   const updateIsPinned = async (noteData) => {
     const noteId = noteData._id
+    const token = localStorage.getItem('token')
 
     try {
       const res = await axios.put(
-        "http://localhost:3000/api/note/update-note-pinned/" + noteId,
+        "https://notetakingbackend-ss9p.onrender.com/api/note/update-note-pinned/" + noteId,
         { isPinned: !noteData.isPinned },
-        { withCredentials: true }
+        { headers: {
+          Authorization: `Bearer ${token}`
+        } }
       )
 
       if (res.data.success === false) {

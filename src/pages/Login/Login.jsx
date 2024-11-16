@@ -34,26 +34,37 @@ const Login = () => {
 
     setError("")
 
-    // Login API
-
     try {
       dispatch(signInStart())
 
       const res = await axios.post(
-        "http://localhost:3000/api/auth/signin",
-        { email, password },
-        { withCredentials: true }
+        "https://notetakingbackend-ss9p.onrender.com/api/auth/signin",
+        { email, password }
       )
+
+      console.log(JSON.stringify(res.data))
 
       if (res.data.success === false) {
         toast.error(res.data.message)
         console.log(res.data)
-        dispatch(signInFailure(data.message))
+        dispatch(signInFailure(res.data.message))
+        return
+      }else{
+        console.log("Token received:", res.data.token); // Add this line
+        toast.success(res.data.message);
+        dispatch(signInSuccess({
+          user: res.data.user,
+          token: res.data.token
+        }));
+        navigate("/");
       }
 
-      toast.success(res.data.message)
-      dispatch(signInSuccess(res.data))
-      navigate("/")
+      // toast.success(res.data.message)
+      // dispatch(signInSuccess({
+      //   user: res.data.user,
+      //   token: res.data.token
+      // }))
+      // navigate("/")
     } catch (error) {
       toast.error(error.message)
       dispatch(signInFailure(error.message))
